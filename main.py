@@ -18,7 +18,7 @@ def main():
     start_time = time.time()
     print_header()
     path = input("Enter the path to 7z.exe: ")  # Example: C:\Program Files\7-Zip\7z.exe
-    working_dir = input("Enter the path to the archives: ")  # Example: Y:\software\games\iso\xbox
+    working_dir = input("Enter the path to the archives: ")  # Example: Y:\software\games
     columns = "\n{0:54} Size\n".format("Title")
     border = "{0:54} {1}".format('=' * 5, '=' * 4)
     print(columns + border)
