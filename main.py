@@ -1,29 +1,16 @@
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-#
-#  Get7ZipSize
-#
-#  This program calculates the required HDD space to store
-#  extracted files from a directory of compressed
-#  files in 7z format.
-#
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-
 import os
 import time
 from subprocess import Popen, PIPE
 
 
-# entry point of the application
 def main():
-    start_time = time.time()
     print_header()
     path = input("Enter the path to 7z.exe: ")  # Example: C:\Program Files\7-Zip\7z.exe
     working_dir = input("Enter the path to the archives: ")  # Example: Y:\software\games
-    columns = "\n{0:54} Size\n".format("Title")
-    border = "{0:54} {1}".format('=' * 5, '=' * 4)
-    print(columns + border)
-    filenames = get_filenames(working_dir)
+    print_table_header()
+    start_time = time.time()
     sizes = []
+    filenames = get_filenames(working_dir)
     os.chdir(working_dir)
     file_count = 0
     for file in filenames:
@@ -40,14 +27,10 @@ def main():
         sizes.append(to_gigabyte(file, size_in_bytes))
         file_count += 1
     all_sizes = compute_total_size(sizes)
-    print("\nTotal Size Required: " + all_sizes)
-    end_time = time.time()
-    running_time = end_time - start_time
-    print("File count: " + str(file_count))
-    print("Completed execution in " + "{:.2f}".format(running_time) + " seconds.")
+    runtime = compute_runtime(start_time)
+    print_footer(runtime, file_count, all_sizes)
 
 
-# displays program information header
 def print_header():
     title = "Get7ZipSize"
     version = "Version 1.0"
@@ -58,18 +41,34 @@ def print_header():
     print("{0} {1}\n{3}\n{2}".format(title, version, description, border))
 
 
-# returns a list of the filenames including file extension
+def print_table_header():
+    columns = "\n{0:54} Size\n".format("Title")
+    border = "{0:54} {1}".format('=' * 5, '=' * 4)
+    print(columns + border)
+
+
+def print_footer(runtime, file_count, all_sizes):
+    print("\nTotal Size Required: " + all_sizes)
+    print("File count: " + str(file_count))
+    print("Completed execution in " + "{:.2f}".format(runtime) + " seconds.")
+
+
+def compute_runtime(start_time):
+    end_time = time.time()
+    running_time = end_time - start_time
+    return running_time
+
+
 def get_filenames(working_dir):
     os.chdir(working_dir)
     process = Popen(['cmd', '/c', 'dir'], stdout=PIPE)
     lines = process.stdout.readlines()[7:-2]
     filenames = []
-    for name in lines:
-        filenames.append(str(name[39:].decode('utf-8').strip()))
+    for filename in lines:
+        filenames.append(str(filename[39:].decode('utf-8').strip()))
     return filenames
 
 
-# returns filesize in gigabytes given an input size in bytes
 def to_gigabyte(filename, size_in_bytes):
     gigabyte_in_bytes = 1073741824
     size_in_gigabytes = size_in_bytes / gigabyte_in_bytes
@@ -78,7 +77,6 @@ def to_gigabyte(filename, size_in_bytes):
     return size_in_gigabytes
 
 
-# returns the total required space (in GB) given a list of sizes (in GB)
 def compute_total_size(sizes):
     total = 0
     for size in sizes:
