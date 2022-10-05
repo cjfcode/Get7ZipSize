@@ -11,4 +11,5 @@ This script uses 7zip's 'l' flag to parse information about compressed files in 
 Requires Python and 7zip.
 
 ### Warnings
-Only tested on .7z format archives. It may work with other formats, but it's not tested.
+* This program is intended to be used with directories that only contain archives (for example, .zip, .rar, .7z). Running it on directories containing individual files may produce errors or incorrect results.
+* Only tested on .7z format archives. It may work with other formats, but it's not tested.

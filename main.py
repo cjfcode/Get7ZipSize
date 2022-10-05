@@ -9,26 +9,15 @@ def main():
     working_dir = input("Enter the path to the archives: ")  # Example: Y:\software\games
     print_table_header()
     start_time = time.time()
-    sizes = []
     filenames = get_filenames(working_dir)
     os.chdir(working_dir)
-    file_count = 0
-    for file in filenames:
-        process = Popen([path, 'l', file], stdout=PIPE)
-        output = process.stdout.readlines()
-        size_in_bytes = None
-        index = 0
-        while size_in_bytes is None:
-            try:
-                size_in_bytes = int(str.split(str(output[len(output) - 3]))[index])
-            except ValueError:
-                index += 1
-                pass
-        sizes.append(to_gigabyte(file, size_in_bytes))
-        file_count += 1
-    all_sizes = compute_total_size(sizes)
+    print_files(filenames)
+    supported_filetypes = working_dir + '\\*'
+    size_in_bytes = get_size_in_bytes(path, supported_filetypes)
+    size = to_gigabyte(size_in_bytes)
+    file_count = count_files(filenames)
     runtime = compute_runtime(start_time)
-    print_footer(runtime, file_count, all_sizes)
+    print_footer(runtime, file_count, size)
 
 
 def print_header():
@@ -42,15 +31,39 @@ def print_header():
 
 
 def print_table_header():
-    columns = "\n{0:54} Size\n".format("Title")
-    border = "{0:54} {1}".format('=' * 5, '=' * 4)
+    columns = "\nTitle\n"
+    border = '=' * 5
     print(columns + border)
 
 
-def print_footer(runtime, file_count, all_sizes):
-    print("\nTotal Size Required: " + all_sizes)
-    print("File count: " + str(file_count))
-    print("Completed execution in " + "{:.2f}".format(runtime) + " seconds.")
+def print_footer(runtime, file_count, size):
+    formatted_size = "{:.2f} GB".format(size)
+    print("\nFile count: " + str(file_count))
+    print("Total Size Required: " + formatted_size)
+    print("Completed execution in " + "{:.2f}".format(runtime) + " seconds.\n")
+
+
+def get_size_in_bytes(path, supported_filetypes):
+    try:
+        process = Popen([path, 'l', supported_filetypes], stdout=PIPE)
+        output = process.stdout.readlines()
+        size_in_bytes = int(str.split(str(output[len(output) - 5]))[2])
+        return size_in_bytes
+    except (ValueError, IndexError) as error:
+        print("Check that the folder contains all valid archives and try again.")
+        return 0
+
+
+def count_files(filenames):
+    count = 0
+    for file in filenames:
+        count += 1
+    return count
+
+
+def print_files(filenames):
+    for filename in filenames:
+        print(filename)
 
 
 def compute_runtime(start_time):
@@ -69,19 +82,13 @@ def get_filenames(working_dir):
     return filenames
 
 
-def to_gigabyte(filename, size_in_bytes):
+def to_gigabyte(size_in_bytes):
     gigabyte_in_bytes = 1073741824
-    size_in_gigabytes = size_in_bytes / gigabyte_in_bytes
-    output_str = "{0:54} {1}"
-    print(output_str.format(filename, "{:.2f} GB".format(size_in_gigabytes)))
-    return size_in_gigabytes
-
-
-def compute_total_size(sizes):
-    total = 0
-    for size in sizes:
-        total += size
-    return "{:.3f}".format(total) + " GB"
+    try:
+        size_in_gigabytes = size_in_bytes / gigabyte_in_bytes
+        return size_in_gigabytes
+    except TypeError:
+        print("Invalid byte size provided.")
 
 
 if __name__ == '__main__':
